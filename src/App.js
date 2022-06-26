@@ -8,12 +8,25 @@ import { getPlacesData } from "./api";
 
 const App = () => {
   const [places, setPlaces] = useState([]);
+  const [coordinates, setCoordinates] = useState({ lat: 0, lng: 0 });
+  const [bounds, setBounds] = useState(null);
+
   useEffect(() => {
-    getPlacesData().then((data) => {
-      console.log(data);
-      setPlaces(data);
-    });
+    navigator.geolocation.getCurrentPosition(
+      ({ coords: { latitude, longitude } }) => {
+        setCoordinates({ lat: latitude, lng: longitude });
+      }
+    );
   }, []);
+
+  useEffect(() => {
+    console.log(coordinates, bounds);
+    if (bounds) {
+      getPlacesData(bounds.sw, bounds.ne).then((data) => {
+        setPlaces(data);
+      });
+    }
+  }, [coordinates, bounds]);
 
   return (
     <>
@@ -24,7 +37,11 @@ const App = () => {
           <List />
         </Grid>
         <Grid item xs={12} md={8}>
-          <Map />
+          <Map
+            setCoordinates={setCoordinates}
+            setBounds={setBounds}
+            coordinates={coordinates}
+          />
         </Grid>
       </Grid>
     </>
